@@ -1,0 +1,115 @@
+import tkinter as tk
+import random
+
+# Initialize the main window
+root = tk.Tk()
+root.title("Hangman")
+
+# Define the words list and select a random word
+words_list = [
+    "APPLE", "BANANA", "CIRCUIT", "DOLPHIN", "EAGLE", "FURNACE", "GIRAFFE", "HORIZON",
+    "JUPITER", "KITCHEN", "LANTERN", "MOUNTAIN", "NOTEBOOK", "OCEAN", "PARROT", "QUANTUM",
+    "ROCKET", "SHELF", "TIGER", "UMBRELLA", "VORTEX", "WINDOW", "XENON", "YACHT",
+    "ZEBRA", "ALBATROSS", "BRIDGE", "COMPUTER", "DESERT", "ELEVATOR", "FESTIVAL", "GADGET",
+    "HARMONY", "INSTRUMENT", "JOURNAL", "KANGAROO", "LABORATORY", "MAGNET", "NIGHT", "OPERA",
+    "QUIZ", "RIVER", "SANDCASTLE", "TELESCOPE", "UNICORN", "VALLEY"
+]
+word = random.choice(words_list)
+word_len = len(word)
+
+# Store the labels for the blank spaces and button widgets
+store_blank = []
+buttons = []  # List to store button widgets
+incorrect_guesses = 5
+
+# Create a frame to hold the blank spaces for the word
+blank_frame = tk.Frame(root)
+blank_frame.pack(pady=50)
+
+# Create a frame to hold the lives label
+lives_frame = tk.Frame(root)
+lives_frame.pack(pady=10)
+
+# Create a label to display lives remaining
+lives_label = tk.Label(lives_frame, text=f"Lives remaining: {incorrect_guesses}", font=("Times", 16))
+lives_label.pack()
+
+# Function to handle button clicks
+def on_button_click(letter, button):
+    global incorrect_guesses
+    if letter in word:
+        # Update labels with correct guesses
+        for i, char in enumerate(word):
+            if char == letter:
+                store_blank[i].config(text=letter)
+        # Disable the button after click
+        button.config(state="disabled")
+        check_win()
+    else:
+        # Decrement incorrect guesses
+        incorrect_guesses -= 1
+        lives_label.config(text=f"Lives remaining: {incorrect_guesses}")
+        # Disable the button after click
+        button.config(state="disabled")
+        check_game_over()
+        
+def show_answer():
+    # Create a new Toplevel window
+    answer_window = tk.Tk()
+    answer_window.title("Answer")
+    
+    # Create a label to display the word
+    answer_label = tk.Label(answer_window, text="The Answer was \n" + word + "\n\nThanks for Playing.", font=("Times", 18))
+    answer_label.pack(padx=35, pady=45)
+    
+    # Close the window after 5 seconds
+    answer_window.after(5000, answer_window.destroy)
+
+def check_win():
+    # Check if all blanks are filled
+    if all(label.cget("text") != "_" for label in store_blank):
+        lives_label.config(text="You Win!")
+        disable_all_buttons()
+        root.after(3000, root.destroy)
+
+def check_game_over():
+    if incorrect_guesses <= 0:
+        lives_label.config(text="Game Over!")
+        disable_all_buttons()
+        show_answer()
+        root.after(3000, root.destroy)
+
+def disable_all_buttons():
+    for button in buttons:
+        button.config(state="disabled")
+
+# Create labels for each letter in the word (as blanks)
+for i in range(word_len):
+    label = tk.Label(blank_frame, text="_", font=("Times", 25))
+    label.pack(side="left", padx=5)
+    store_blank.append(label)
+
+# Define alphabet buttons
+buttons_list = [
+    ('Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'),
+    ('A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'),
+    ('Z', 'X', 'C', 'V', 'B', 'N', 'M')
+]
+
+# Create a frame to hold the alphabet buttons
+button_frame = tk.Frame(root)
+button_frame.pack(pady=20)
+
+# Create and place alphabet buttons in a grid
+for r, row in enumerate(buttons_list):
+    row_frame = tk.Frame(button_frame)
+    row_frame.pack()
+    for label in row:
+        button = tk.Button(row_frame, text=label, width=4, height=2, bg="grey", fg="white")
+        button.pack(side="left", padx=5, pady=5)
+        # Pass the button as a parameter to the on_button_click function
+        button.config(command=lambda b=button, l=label: on_button_click(l, b))
+        buttons.append(button)
+
+# Run the application
+root.mainloop()
